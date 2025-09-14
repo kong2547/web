@@ -210,17 +210,17 @@ $themeStyles = getThemeStyles($currentTheme);
     <div class="menu-grid">
       <div class="menu-card">
         <i class="fas fa-users-cog"></i>
-        <a href="admin_users.php">จัดการโปรโตไทป์</a>
+        <a href="index.php">จัดการอาคาร</a>
       </div>
 
       <div class="menu-card">
         <i class="fas fa-user-check"></i>
-        <a href="admin_approval.php">จัดการผู้ใช้</a>
+        <a href="admin_approval.php">ดูผู้ใช้</a>
       </div>
       
       <div class="menu-card">
         <i class="fas fa-database"></i>
-        <a href="view_user_data.php">ดูข้อมูลผู้ใช้</a>
+        <a href="user_data.php">จัดการผู้ใช้</a>
       </div>
       
       <div class="menu-card">
@@ -232,13 +232,13 @@ $themeStyles = getThemeStyles($currentTheme);
         <i class="fas fa-cog"></i>
         <a href="settings.php">ตั้งค่าระบบ</a>
       </div>
-      
+      <!--
       <div class="menu-card">
         <i class="fas fa-calendar-alt"></i>
         <a href="admin_edit_expiry.php">กำหนดวันหมดอายุผู้ใช้</a>
       </div>
     </div>
-
+  -->
     <div class="logout">
       <a href="logout.php"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
     </div>
