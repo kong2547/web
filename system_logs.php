@@ -12,17 +12,19 @@ if (!isset($_SESSION['username'])) {
 // พร้อมแสดงการกระทำทั้งหมดและเวลาล่าสุดที่ทำ
 $stmt = $conn->query("
     SELECT 
-        username,
-        GROUP_CONCAT(DISTINCT action ORDER BY created_at DESC SEPARATOR ', ') AS actions,
-        MAX(created_at) AS last_activity
+        l.username,
+        GROUP_CONCAT(DISTINCT l.action ORDER BY l.created_at DESC SEPARATOR ', ') AS actions,
+        MAX(l.created_at) AS last_activity
     FROM 
-        logs
+        logs l
+    INNER JOIN users u ON l.username = u.username   -- ดึงเฉพาะที่มีใน users
     GROUP BY 
-        username
+        l.username
     ORDER BY 
         last_activity DESC
     LIMIT 50
 ");
+
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>

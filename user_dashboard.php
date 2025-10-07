@@ -25,7 +25,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'user') {
         body {
             font-family: 'Segoe UI', sans-serif;
             padding: 30px;
-            background-color: #f0f2f5;
+           background: url('engineer.png') no-repeat center center fixed; /* ใส่ไฟล์รูป */
+            background-size: cover; /* ปรับให้เต็มหน้าจอ */
         }
         .container {
             max-width: 600px;

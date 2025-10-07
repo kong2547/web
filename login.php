@@ -32,7 +32,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
-            // ถ้าไม่ใช่ admin ต้องตรวจ status ด้วย
             if ($user['role'] !== 'admin' && $user['status'] !== 'active') {
                 $error = "บัญชียังไม่ผ่านการอนุมัติจากผู้ดูแลระบบ";
                 $_SESSION['login_attempts']++;
@@ -40,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else {
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
-                $_SESSION['fullname'] = $user['username']; // ใช้ username แทน fullname
+                $_SESSION['fullname'] = $user['username'];
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['login_attempts'] = 0;
 
@@ -71,23 +70,74 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <title>เข้าสู่ระบบ</title>
     <style>
-        body {font-family: Arial; background:#fff; display:flex; justify-content:center; align-items:center; min-height:100vh;}
-        form {background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1); width:300px; text-align:center;}
-        input {width:100%; padding:10px; margin:8px 0; border:1px solid #ccc; border-radius:4px;}
-        button {background:#5cb85c; color:white; padding:10px; border:none; border-radius:4px; cursor:pointer; width:100%;}
+        body {
+            font-family: Arial;
+            background: url('engineer.png') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        form {
+            background:#fff;
+            padding:20px;
+            border-radius:8px;
+            box-shadow:0 0 10px rgba(0,0,0,0.1);
+            width:300px;
+            text-align:center;
+        }
+        input {
+            width:100%;
+            padding:10px;
+            margin:8px 0;
+            border:1px solid #ccc;
+            border-radius:4px;
+            box-sizing:border-box;
+        }
+        button {
+            background:#5cb85c;
+            color:white;
+            padding:10px;
+            border:none;
+            border-radius:4px;
+            cursor:pointer;
+            width:100%;
+        }
         button:hover {opacity:0.9;}
         .error {color:red; margin-bottom:10px;}
+        /* 🔹 ปุ่มบุคคลทั่วไป */
+        .public-btn {
+            display:block;
+            text-decoration:none;
+            margin-top:15px;
+            background:#007bff;
+            color:white;
+            padding:10px;
+            border-radius:4px;
+            font-size:14px;
+        }
+        .public-btn:hover {
+            background:#0056b3;
+        }
     </style>
 </head>
 <body>
     <form method="post" action="">
         <h2>เข้าสู่ระบบ</h2>
         <?php if (isset($error)) echo "<p class='error'>$error</p>"; ?>
+        
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
         <input type="text" name="username" placeholder="ชื่อผู้ใช้" required><br>
         <input type="password" name="password" placeholder="รหัสผ่าน" required><br>
         <button type="submit">เข้าสู่ระบบ</button><br>
         <p><a href="register.php">สมัครสมาชิก</a></p>
+
+        <!-- 🔹 ปุ่มเข้าสู่หน้าบุคคลทั่วไป -->
+        <a href="public_control.php" class="public-btn">
+            🔌 เข้าสู่หน้าควบคุมบุคคลทั่วไป
+        </a>
     </form>
 </body>
 </html>

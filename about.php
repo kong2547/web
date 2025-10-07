@@ -1,3 +1,28 @@
+<?php
+include 'log_action.php';
+
+// ✅ ตรวจสอบการล็อกอิน
+if (!isset($_SESSION['username'])) {
+    header('location: login.php');
+    exit();
+}
+
+$username = $_SESSION['username'];
+
+// ✅ เก็บ Log การเข้าใช้งาน
+$action = basename($_SERVER['PHP_SELF']);
+$stmt = $conn->prepare("INSERT INTO logs (username, action) VALUES (?, ?)");
+$stmt->execute([$username, $action]);
+
+// ✅ Logout
+if (isset($_GET['logout'])) {
+    $stmt = $conn->prepare("INSERT INTO logs (username, action) VALUES (?, 'logout')");
+    $stmt->execute([$username]);
+    session_destroy();
+    header('location: login.php');
+    exit();
+}
+?>
 <!DOCTYPE html> 
 <html lang="th">
 <head>

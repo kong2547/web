@@ -35,8 +35,8 @@ if (isset($_GET['logout'])) {
         body {
             font-family: 'Segoe UI', sans-serif;
             margin: 0;
-            background: url('building.webp') no-repeat center center fixed;
-            background-size: cover;
+           background: url('engineer.png') no-repeat center center fixed; /* ใส่ไฟล์รูป */
+            background-size: cover; /* ปรับให้เต็มหน้าจอ */
             color: #333;
         }
         /* ✅ Overlay */
