@@ -1,7 +1,6 @@
 <?php
+session_start();
 include 'db.php';
-
-
 include 'log_action.php';
 
 // ✅ ตรวจสอบการล็อกอิน

@@ -237,8 +237,65 @@ case 'update_ip':
 
     echo json_encode(["success" => true]);
 break;
+/* ✅ 10. LOG WIFI RECONNECT (ใช้เวลาเซิร์ฟเวอร์เป็นหลัก) */
+case 'log_reconnect':
+    $esp_name = $_GET['esp_name'] ?? '';
+    $ip       = $_GET['ip'] ?? getClientIP();
 
-/* ❌ DEFAULT */
+    if (!$esp_name) {
+        echo json_encode(["error" => "esp_name required"]);
+        exit;
+    }
+
+    // ✅ ใช้เวลาเซิร์ฟเวอร์แทน (ไม่พึ่งเวลาจาก ESP)
+    $server_date = date("Y-m-d");
+    $server_time = date("H:i:s");
+
+    // ✅ เพิ่มข้อมูลการเชื่อมต่อ Wi-Fi ลงตาราง esp_logs
+    $stmt = $conn->prepare("
+        INSERT INTO esp_logs (esp_name, ip_address, log_date, log_time, created_at)
+        VALUES (?, ?, ?, ?, NOW())
+    ");
+    $stmt->execute([$esp_name, $ip, $server_date, $server_time]);
+
+    echo json_encode([
+        "success" => true,
+        "msg" => "Wi-Fi reconnect logged (server time)",
+        "server_date" => $server_date,
+        "server_time" => $server_time
+    ]);
+break;
+
+/* ✅ 11. LOG BOOT (ESP บันทึกตอนเริ่มบูตใหม่) 
+case 'log_boot':
+    $esp_name = $_GET['esp_name'] ?? '';
+    $ip       = $_GET['ip'] ?? getClientIP();
+
+    if (!$esp_name) {
+        echo json_encode(["error" => "esp_name required"]);
+        exit;
+    }
+
+    // ใช้เวลาเซิร์ฟเวอร์เป็นหลัก
+    $server_date = date("Y-m-d");
+    $server_time = date("H:i:s");
+
+    // ✅ บันทึกข้อมูลการบูตของบอร์ด
+    $stmt = $conn->prepare("
+        INSERT INTO esp_logs (esp_name, ip_address, log_date, log_time, created_at)
+        VALUES (?, ?, ?, ?, NOW())
+    ");
+    $stmt->execute([$esp_name, $ip, $server_date, $server_time]);
+
+    echo json_encode([
+        "success" => true,
+        "msg" => "Boot log saved (server time)",
+        "server_date" => $server_date,
+        "server_time" => $server_time
+    ]);
+break;*/
+
+
 default:
     echo json_encode(["error" => "Invalid cmd"]);
 }

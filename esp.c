@@ -37,7 +37,7 @@ const unsigned long scheduleInterval = 5000;
 
 // ----------------- STATIC IP CONFIG -----------------
 bool useStaticIP = false;
-String staticIP = "172.26.30.12";     // ตั้งค่า IP คงที่
+String staticIP = "172.26.30.12";
 String gatewayIP = "172.26.30.254";
 String subnetIP  = "255.255.255.0";
 String dnsIP     = "8.8.8.8";
@@ -118,21 +118,18 @@ void checkBootReset() {
   } else pressStart = 0;
 }
 
-// ----------------- RELAY CONTROL (แก้ไขแล้ว) -----------------
+// ----------------- RELAY CONTROL -----------------
 void saveRelayState(int i, bool state) {
   prefs.begin("relay", false);
   prefs.putBool(("relay_" + String(relayPins[i])).c_str(), state);
   prefs.end();
 }
 
-// ✅ รีเลย์ Active HIGH / LED Active HIGH (ทำงานตรงกัน)
 void applyRelayState(int i, bool state, const char* action) {
   if (relayState[i] == state) return;
   relayState[i] = state;
-
   digitalWrite(relayPins[i], relayState[i] ? HIGH : LOW);
   digitalWrite(ledPins[i], relayState[i] ? HIGH : LOW);
-
   saveRelayState(i, state);
 
   if (String(action) == "manual_sync" || String(action) == "button_press") {
@@ -153,13 +150,10 @@ void applyRelayState(int i, bool state, const char* action) {
                  "&gpio=" + relayPins[i] +
                  "&status=" + (state ? "1" : "0") +
                  "&action=" + action;
-    if (http.begin(client, url)) {
-      http.GET(); http.end();
-    }
+    if (http.begin(client, url)) { http.GET(); http.end(); }
   }
 }
 
-// ตรวจปุ่มกดจริง
 void checkButton(int i) {
   static bool last[10] = {HIGH};
   bool st = digitalRead(buttonPins[i]);
@@ -233,7 +227,6 @@ void fetchFullSchedule() {
   }
 }
 
-// ✅ ตรวจวันที่และเวลา
 void applyLocalSchedule(int i) {
   if (manualOverride[i] && millis() - lastManual[i] < 5*60*1000) return;
   StaticJsonDocument<4096> doc;
@@ -247,26 +240,18 @@ void applyLocalSchedule(int i) {
   for (JsonObject s : doc.as<JsonArray>()) {
     if (!s["enabled"]) continue;
     if (String((const char*)s["esp_name"]) != espName) continue;
-
     int scheduleGPIO = s["gpio_pin"];
     if (scheduleGPIO != relayPins[i]) continue;
-
     String wd = s["weekdays"];
     if (wd.indexOf(currentDay) == -1) continue;
-
     String startDate = s["start_date"];
     String endDate   = s["end_date"];
     if (currentDate < startDate || currentDate > endDate) continue;
-
     String st = s["start_time"];
     String et = s["end_time"];
     bool isOn = (String((const char*)s["mode"]) == "on");
-
-    if (nowStr >= st && nowStr < et) {
-      applyRelayState(i, isOn, "schedule");
-    } else {
-      applyRelayState(i, !isOn, "schedule_end");
-    }
+    if (nowStr >= st && nowStr < et) applyRelayState(i, isOn, "schedule");
+    else applyRelayState(i, !isOn, "schedule_end");
   }
 }
 
@@ -282,9 +267,7 @@ void reportNetworkConfig() {
               + "&subnet=" + WiFi.subnetMask().toString()
               + "&dns=" + WiFi.dnsIP().toString()
               + "&mode=" + String(useStaticIP ? "static" : "dhcp");
-  if (http.begin(client, url)) {
-    http.GET(); http.end();
-  }
+  if (http.begin(client, url)) { http.GET(); http.end(); }
 }
 
 // ----------------- SETUP -----------------
@@ -296,6 +279,11 @@ void setup() {
   loadParams();
 
   WiFiManager wm;
+  wm.setConnectRetries(20);
+  wm.setConnectTimeout(10);
+  wm.setConfigPortalTimeout(0);
+  wm.setBreakAfterConfig(true);
+
   WiFiManagerParameter p1("espName","ESP Name",espName.c_str(),40);
   WiFiManagerParameter p2("serverURL","Server URL",serverURL.c_str(),100);
   WiFiManagerParameter p3("relayPins","Relay Pins",relayPinsStr.c_str(),40);
@@ -312,8 +300,21 @@ void setup() {
   wm.addParameter(&p6); wm.addParameter(&p7);
   wm.addParameter(&p8); wm.addParameter(&p9); wm.addParameter(&p10);
 
-  if (!wm.autoConnect("ESP32_ConfigAP")) ESP.restart();
+  Serial.println("🔁 Trying to reconnect Wi-Fi...");
+  if (!wm.autoConnect("ESP32_ConfigAP")) {
+    Serial.println("⚠️ Wi-Fi not found, waiting for router...");
+    for (int i = 0; i < 12; i++) {   // 12 × 5 = 60s
+      if (WiFi.status() == WL_CONNECTED) break;
+      delay(5000);
+      Serial.print(".");
+    }
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("\n❌ Still not connected, restarting...");
+      ESP.restart();
+    }
+  }
 
+  // Save any updated parameters
   espName = p1.getValue(); serverURL = p2.getValue();
   relayPinsStr = p3.getValue(); buttonPinsStr = p4.getValue(); ledPinsStr = p5.getValue();
   useStaticIP = String(p6.getValue()) == "1";
@@ -339,7 +340,6 @@ void setup() {
     prefs.begin("relay", true);
     relayState[i] = prefs.getBool(("relay_"+String(relayPins[i])).c_str(), false);
     prefs.end();
-
     digitalWrite(relayPins[i], LOW);
     digitalWrite(ledPins[i], LOW);
   }

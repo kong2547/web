@@ -10,6 +10,7 @@ if (!isset($_SESSION['username'])) {
 }
 
 $username = $_SESSION['username'];
+$role = $_SESSION['role'] ?? 'user'; // ✅ เพิ่มตัวแปร role
 
 // ✅ เก็บ Log การเข้าใช้งาน
 $action = basename($_SERVER['PHP_SELF']);
@@ -31,23 +32,20 @@ if (isset($_GET['logout'])) {
     <meta charset="UTF-8">
     <title>ระบบควบคุมตึก 10 ชั้น</title>
     <link rel="stylesheet" href="style.css">
+    <!-- ✅ ฟอนต์ Kanit -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
+    <!-- ✅ Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Kanit', sans-serif;
             margin: 0;
-           background: url('engineer.png') no-repeat center center fixed; /* ใส่ไฟล์รูป */
-            background-size: cover; /* ปรับให้เต็มหน้าจอ */
+            background: url('engineer.png') no-repeat center center fixed;
+            background-size: cover;
             color: #333;
         }
-        /* ✅ Overlay */
-        body::before {
-            content: "";
-            position: fixed;
-            top:0; left:0; right:0; bottom:0;
-            background: rgba(0,0,0,0.4);
-            z-index: -1;
-        }
-        /* ✅ Navbar */
+
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -68,72 +66,142 @@ if (isset($_GET['logout'])) {
             font-weight: 600;
             transition: 0.3s;
         }
-        .navbar a:hover {
-            color: #00d4a0;
+        .navbar a:hover { color: #00d4a0; }
+
+        .floating-logo {
+            position: fixed;
+            top: 68px;
+            left: 24px;
+            width: 120px;
+            height: auto;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));
+            pointer-events: none;
+            z-index: 1;
         }
-        /* ✅ Container */
+
         .container {
-            max-width: 1100px;
-            margin: 40px auto;
+            max-width: 800px;
+            margin: 150px auto 40px;
             text-align: center;
-            background: rgba(255,255,255,0.9);
-            padding: 30px;
+            background: rgba(255,255,255,0.85);
+            padding: 30px 25px;
             border-radius: 15px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
+
         h2 {
             margin-bottom: 30px;
             color: #222;
+            font-weight: 600;
         }
-        /* ✅ ปุ่มการ์ด */
+
         .grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 25px;
+            gap: 120px;
             justify-content: center;
         }
+
         .card-button {
-            width: 200px;
-            height: 140px;
-            background: linear-gradient(135deg, #06a769, #03995d);
+            width: 220px;
+            height: 160px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
             color: white;
-            border-radius: 15px;
             text-decoration: none;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            font-size: 17px;
+            font-weight: 600;
+            transition: transform .3s ease, box-shadow .3s ease, filter .3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.25);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.25);
         }
         .card-button:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 10px 18px rgba(0,0,0,0.3);
+            transform: translateY(-6px) scale(1.06);
+            box-shadow: 0 12px 26px rgba(0,0,0,0.35);
+            filter: brightness(1.07);
         }
+
         .icon {
-            font-size: 32px;
-            margin-bottom: 10px;
+            font-size: 50px;
+            margin-bottom: 12px;
+            line-height: 1;
         }
-        /* ✅ Back */
+
+        /* 🎨 ธีมสี */
+        .light-card {
+            background: linear-gradient(135deg, #f6d365, #fda085);
+        }
+        .light-card .icon {
+            color: #ffe066;
+            text-shadow: 0 0 8px #ffb700, 0 0 16px #ffcc33, 0 0 24px #ffd966;
+        }
+        .light-card:hover .icon i {
+            text-shadow: 0 0 14px #ffd43b, 0 0 28px #ffc107, 0 0 50px #fff176;
+        }
+
+        /* 🔵 Air Control */
+        .air-card {
+            background: linear-gradient(135deg, #89f7fe, #66a6ff);
+        }
+        .air-card .icon {
+            color: #e6faff;
+            text-shadow: 0 0 6px #0066cc, 0 0 12px #0099ff;
+        }
+        .air-card:hover .icon i {
+            animation: pulseAir 1.8s infinite;
+        }
+
+        .fan-card {
+            background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+        }
+        .fan-card .icon {
+            color: #b366ff;
+            text-shadow: 0 0 6px #8a2be2, 0 0 14px #d580ff;
+        }
+        .fan-card:hover .icon i {
+            transform: rotate(360deg);
+            transition: transform 0.8s ease;
+            text-shadow: 0 0 12px #d580ff, 0 0 28px #e1b3ff;
+        }
+
+        @keyframes pulseAir {
+            0%   { text-shadow: 0 0 6px #0066cc, 0 0 12px #0099ff; }
+            50%  { text-shadow: 0 0 22px #00ccff, 0 0 48px #80f7ff; }
+            100% { text-shadow: 0 0 6px #0066cc, 0 0 12px #0099ff; }
+        }
+
+        /* ✅ ปุ่ม Back — ขนาดใหญ่ + Gradient + Icon */
         .back {
-            margin-top: 30px;
             display: inline-block;
-            font-weight: bold;
+            margin-top: 40px;
+            padding: 14px 36px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
             text-decoration: none;
-            color: #0077cc;
-            transition: 0.3s;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ff6b6b, #ff3b3b);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .back i {
+            margin-right: 8px;
         }
         .back:hover {
-            text-decoration: underline;
-            color: #005fa3;
+            background: linear-gradient(135deg, #ff8787, #ff4d4d);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
     </style>
 </head>
 <body>
 
-<!-- ✅ Navigation -->
 <div class="navbar">
     <h1>ระบบจัดการพลังงาน อาคารศรีวิศววิทยา คณะวิศวกรรมศาสตร์</h1>
     <div>
@@ -142,30 +210,39 @@ if (isset($_GET['logout'])) {
     </div>
 </div>
 
+<img src="logo.png" alt="Logo" class="floating-logo">
+
 <div class="container">
-    <h2>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?> 👋</h2>
+    <h2>Welcome <?= htmlspecialchars($_SESSION['username']) ?> 👋</h2>
 
     <div class="grid">
-        <a href="building.php" class="card-button">
-            <div class="icon">💡</div>
+        <a href="building.php" class="card-button light-card">
+            <div class="icon"><i class="fa-solid fa-lightbulb"></i></div>
             Light Control
         </a>
-        <a href="air.html" class="card-button">
-            <div class="icon">❄️</div>
+        <a href="/aircontrol/test/index.html" class="card-button air-card">
+            <div class="icon"><i class="fa-solid fa-snowflake"></i></div>
             Air Control
         </a>
-        <a href="fan.php" class="card-button">
-            <div class="icon">🌀</div>
+        <!--
+        <a href="fan.php" class="card-button fan-card">
+            <div class="icon"><i class="fa-solid fa-fan"></i></div>
             Fan Control
         </a>
-        <!--<a href="change_theme.php" class="card-button">
-            <div class="icon">⚙️</div>
-            Settings
-        </a> -->
+        -->
     </div>
 
+    <!-- ✅ ปุ่ม Back -->
     <p>
-        <a href="user_dashboard.php?back=1" class="back"> Back</a>
+        <?php if ($role === 'admin'): ?>
+            <a href="admin_dashboard.php" class="back">
+                <i class="fa-solid fa-arrow-left"></i> กลับไปหน้าแอดมิน
+            </a>
+        <?php else: ?>
+            <a href="user_dashboard.php" class="back">
+                <i class="fa-solid fa-arrow-left"></i> กลับไปหน้าผู้ใช้
+            </a>
+        <?php endif; ?>
     </p>
 </div>
 </body>

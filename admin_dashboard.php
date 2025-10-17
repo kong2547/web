@@ -48,7 +48,6 @@ function getThemeStyles($theme) {
             'card-border' => '#eaeaea'
         ]
     ];
-    
     return $themes[$theme] ?? $themes['default'];
 }
 
@@ -63,141 +62,58 @@ $themeStyles = getThemeStyles($currentTheme);
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500;700&display=swap" rel="stylesheet" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Kanit', sans-serif;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
     body {
       background: <?php echo $themeStyles['background']; ?>;
-      min-height: 100vh;
-      padding: 20px;
+      min-height: 100vh; padding: 20px;
       color: <?php echo $themeStyles['text']; ?>;
     }
-
     .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background-color: white;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
+      max-width: 1200px; margin: 0 auto;
+      background-color: white; border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden;
     }
-
     .header {
       background: linear-gradient(to right, <?php echo $themeStyles['primary']; ?>, <?php echo $themeStyles['secondary']; ?>);
-      color: white;
-      padding: 30px;
-      text-align: center;
+      color: white; padding: 30px; text-align: center;
     }
-
-    .header h1 {
-      font-weight: 700;
-      margin-bottom: 10px;
-      font-size: 2.2rem;
-    }
-
-    .header p {
-      font-weight: 300;
-      opacity: 0.9;
-    }
-
+    .header h1 { font-weight: 700; margin-bottom: 10px; font-size: 2.2rem; }
     .menu-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      padding: 30px;
+      gap: 20px; padding: 30px;
     }
-
     .menu-card {
       background: <?php echo $themeStyles['card-bg']; ?>;
-      border-radius: 10px;
-      padding: 25px;
-      text-align: center;
+      border-radius: 10px; padding: 25px; text-align: center;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
       transition: transform 0.3s, box-shadow 0.3s;
       border: 1px solid <?php echo $themeStyles['card-border']; ?>;
     }
-
     .menu-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     }
-
-    .menu-card i {
-      font-size: 2.5rem;
-      margin-bottom: 15px;
-      display: block;
-      color: <?php echo $themeStyles['primary']; ?>;
-    }
-
+    .menu-card i { font-size: 2.5rem; margin-bottom: 15px; display: block; color: <?php echo $themeStyles['primary']; ?>; }
     .menu-card a {
-      display: block;
-      color: <?php echo $themeStyles['text']; ?>;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 1.1rem;
-      padding: 10px;
-      border-radius: 5px;
+      display: block; color: <?php echo $themeStyles['text']; ?>;
+      text-decoration: none; font-weight: 500; font-size: 1.1rem;
+      padding: 10px; border-radius: 5px;
       transition: background-color 0.3s, color 0.3s;
     }
-
     .menu-card a:hover {
       background-color: <?php echo $themeStyles['primary']; ?>;
       color: white;
     }
-
-    .logout {
-      text-align: center;
-      padding: 20px;
-      border-top: 1px solid <?php echo $themeStyles['card-border']; ?>;
-    }
-
+    .logout { text-align: center; padding: 20px; border-top: 1px solid <?php echo $themeStyles['card-border']; ?>; }
     .logout a {
-      display: inline-block;
-      padding: 12px 25px;
+      display: inline-block; padding: 12px 25px;
       background-color: <?php echo $themeStyles['accent']; ?>;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: 500;
-      transition: background-color 0.3s;
+      color: white; text-decoration: none; border-radius: 5px;
+      font-weight: 500; transition: background-color 0.3s;
     }
-
-    .logout a:hover {
-      background-color: <?php 
-        // สี accent ที่เข้มขึ้นเมื่อ hover
-        list($r, $g, $b) = sscanf($themeStyles['accent'], "#%02x%02x%02x");
-        echo "rgb(" . max(0, $r - 20) . ", " . max(0, $g - 20) . ", " . max(0, $b - 20) . ")";
-      ?>;
-    }
-
-    .logout i {
-      margin-right: 8px;
-    }
-
-    @media (max-width: 768px) {
-      .menu-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        padding: 20px;
-      }
-      
-      .header h1 {
-        font-size: 1.8rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .menu-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      body {
-        padding: 10px;
-      }
-    }
+    .logout a:hover { opacity: 0.85; }
+    .logout i { margin-right: 8px; }
   </style>
 </head>
 <body>
@@ -212,33 +128,38 @@ $themeStyles = getThemeStyles($currentTheme);
         <i class="fas fa-users-cog"></i>
         <a href="index.php">จัดการอาคาร</a>
       </div>
-
       <div class="menu-card">
         <i class="fas fa-user-check"></i>
         <a href="admin_approval.php">ดูผู้ใช้</a>
       </div>
-      
       <div class="menu-card">
         <i class="fas fa-database"></i>
         <a href="user_data.php">จัดการผู้ใช้</a>
       </div>
-      
       <div class="menu-card">
         <i class="fas fa-clipboard-list"></i>
         <a href="system_logs.php">บันทึกระบบ</a>
       </div>
-      
+      <div class="menu-card">
+        <i class="fas fa-calendar-alt"></i>
+        <a href="generate_token.php">QR-Code All Room</a>
+      </div>
+
+      <!-- ✅ ปุ่มรีเซ็ต ID -->
+      <div class="menu-card">
+        <i class="fas fa-tools"></i>
+        <a href="fix_switch_id.php" onclick="return confirm('⚠️ แน่ใจหรือไม่ว่าจะรีเซ็ตรหัส ID ของฐานข้อมูล? ควรสำรองข้อมูลก่อนดำเนินการ!');">
+          รีเซ็ตลำดับ ID ฐานข้อมูล
+        </a>
+      </div>
+
       <div class="menu-card">
         <i class="fas fa-cog"></i>
         <a href="settings.php">ตั้งค่าระบบ</a>
       </div>
-      <!--
-      <div class="menu-card">
-        <i class="fas fa-calendar-alt"></i>
-        <a href="admin_edit_expiry.php">กำหนดวันหมดอายุผู้ใช้</a>
-      </div>
+
     </div>
-  -->
+
     <div class="logout">
       <a href="logout.php"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
     </div>

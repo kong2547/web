@@ -548,6 +548,89 @@ input:checked + .slider:before {
                 </div>
             </div>
 
+<?php
+// ----------------- สร้างตารางช่วงเวลาทำงานแต่ละ SW -----------------
+$operationPeriods = [];
+
+foreach ($switches as $sw) {
+    $sid = $sw['id'];
+    $lastOn = null;
+
+    foreach ($logs as $log) {
+        if ($log['switch_id'] != $sid) continue;
+
+        $time = strtotime($log['created_at']);
+        if ($log['status'] === 'on') {
+            $lastOn = $time;
+        } elseif ($log['status'] === 'off' && $lastOn) {
+            $operationPeriods[$sid][] = [
+                'on' => date('H:i:s', $lastOn),
+                'off' => date('H:i:s', $time),
+                'duration' => gmdate('H:i:s', $time - $lastOn)
+            ];
+            $lastOn = null;
+        }
+    }
+
+    // ถ้ายังเปิดอยู่ ณ ปัจจุบัน
+    if ($lastOn) {
+        $now = time();
+        $operationPeriods[$sid][] = [
+            'on' => date('H:i:s', $lastOn),
+            'off' => 'ยังทำงานอยู่',
+            'duration' => gmdate('H:i:s', $now - $lastOn)
+        ];
+    }
+}
+?>
+
+<!-- 🕒 ตารางช่วงเวลาทำงานจริง (พับเก็บได้) -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <h6 class="mb-0">🕒 ช่วงเวลาที่สวิตช์ทำงานจริง</h6>
+    <button class="btn btn-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#operationPeriodTable">
+      แสดง / ซ่อน
+    </button>
+  </div>
+
+  <div id="operationPeriodTable" class="collapse">
+    <div class="card-body">
+      <?php if (empty($operationPeriods)): ?>
+        <p class="text-muted">ยังไม่มีข้อมูลการเปิด/ปิดในช่วงเวลาที่เลือก</p>
+      <?php else: ?>
+        <?php foreach ($switches as $sw): ?>
+          <h6 class="mt-3 text-dark"><?= htmlspecialchars($sw['switch_name']) ?></h6>
+          <?php if (!empty($operationPeriods[$sw['id']])): ?>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped table-bordered align-middle text-center">
+                <thead class="table-light">
+                  <tr>
+                    <th width="30%">เวลาเปิด</th>
+                    <th width="30%">เวลาปิด</th>
+                    <th width="40%">ระยะเวลา</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($operationPeriods[$sw['id']] as $p): ?>
+                    <tr>
+                      <td><?= $p['on'] ?></td>
+                      <td><?= $p['off'] ?></td>
+                      <td><span class="badge bg-success"><?= $p['duration'] ?></span></td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          <?php else: ?>
+            <p class="text-muted">ไม่มีข้อมูลการทำงานของสวิตช์นี้</p>
+          <?php endif; ?>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </div>
+  </div>
+</div>
+
+            
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <h6 class="card-title text-primary">📋 รายการ Schedule</h6>
@@ -555,35 +638,54 @@ input:checked + .slider:before {
                         <p class="text-muted">ยังไม่มี Schedule</p>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-sm table-striped table-hover table-sched">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th><th>Device</th><th>ESP</th><th>Mode</th><th>Weekdays</th>
-                                        <th>Date Range</th><th>Time</th><th>Enabled</th><th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach($schedules as $sch): ?>
-                                        <tr>
-                                            <td><?= $sch['id'] ?></td>
-                                            <td><?= htmlspecialchars($switch_name_map[$sch['device_id']] ?? $sch['device_id']) ?></td>
-                                            <td><?= htmlspecialchars($sch['esp_name']) ?></td>
-                                            <td><span class="badge bg-<?= $sch['mode']=='on'?'success':'danger' ?>"><?= strtoupper($sch['mode']) ?></span></td>
-                                            <td><?= htmlspecialchars($sch['weekdays']?:'ทุกวัน') ?></td>
-                                            <td><?= $sch['start_date'] ?> - <?= $sch['end_date'] ?></td>
-                                            <td><?= $sch['start_time'] ?> - <?= $sch['end_time'] ?></td>
-                                            <td><span class="badge bg-<?= $sch['enabled'] ? 'success' : 'secondary' ?>"><?= $sch['enabled'] ? 'ใช้งาน' : 'ปิด' ?></span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <a class="btn btn-outline-secondary" href="room.php?id=<?= $room_id ?>&toggle_schedule=<?= $sch['id'] ?>">Toggle</a>
-                                                    <a class="btn btn-primary" href="room.php?id=<?= $room_id ?>&edit_schedule=<?= $sch['id'] ?>">Edit</a>
-                                                    <a class="btn btn-danger" href="room.php?id=<?= $room_id ?>&del_schedule=<?= $sch['id'] ?>" onclick="return confirm('ลบ schedule?')">Delete</a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                           <table class="table table-sm table-striped table-hover table-sched">
+    <thead>
+        <tr>
+            <!-- ซ่อน ID -->
+            <th style="display:none;">ID</th>
+            <th>สวิตช์</th>
+            <th>ESP</th>
+            <th>โหมด</th>
+            <th>วันทำงาน</th>
+            <th>ช่วงวันที่</th>
+            <th>เวลา</th>
+            <th>สถานะ</th>
+            <th>จัดการ</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach($schedules as $sch): ?>
+            <tr>
+                <!-- ซ่อน ID -->
+                <td style="display:none;"><?= $sch['id'] ?></td>
+                
+                <td><?= htmlspecialchars($switch_name_map[$sch['device_id']] ?? $sch['device_id']) ?></td>
+                <td><?= htmlspecialchars($sch['esp_name']) ?></td>
+                <td>
+                    <span class="badge bg-<?= $sch['mode']=='on'?'success':'danger' ?>">
+                        <?= strtoupper($sch['mode']) ?>
+                    </span>
+                </td>
+                <td><?= htmlspecialchars($sch['weekdays'] ?: 'ทุกวัน') ?></td>
+                <td><?= $sch['start_date'] ?> - <?= $sch['end_date'] ?></td>
+                <td><?= $sch['start_time'] ?> - <?= $sch['end_time'] ?></td>
+                <td>
+                    <span class="badge bg-<?= $sch['enabled'] ? 'success' : 'secondary' ?>">
+                        <?= $sch['enabled'] ? 'ใช้งาน' : 'ปิด' ?>
+                    </span>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <a class="btn btn-outline-secondary" href="room.php?id=<?= $room_id ?>&toggle_schedule=<?= $sch['id'] ?>">Toggle</a>
+                        <a class="btn btn-primary" href="room.php?id=<?= $room_id ?>&edit_schedule=<?= $sch['id'] ?>">Edit</a>
+                        <a class="btn btn-danger" href="room.php?id=<?= $room_id ?>&del_schedule=<?= $sch['id'] ?>" onclick="return confirm('ลบ schedule?')">Delete</a>
+                    </div>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
                         </div>
                     <?php endif; ?>
                 </div>
@@ -776,6 +878,8 @@ refreshESPStatus();
 setInterval(refreshESPStatus, 5000);
 
 </script>
+<!-- Bootstrap JS Bundle (จำเป็นสำหรับ Collapse, Modal, Dropdown, etc.) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

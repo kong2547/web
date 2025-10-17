@@ -15,15 +15,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // ฟิลเตอร์ input
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+    $fullname = filter_input(INPUT_POST, 'fullname', FILTER_SANITIZE_STRING);
     $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $role = 'user';
     $status = 'pending';
 
-    $stmt = $conn->prepare("INSERT INTO users (email, username, password, role, status) VALUES (?, ?, ?, ?, ?)");
+    // ✅ เพิ่ม fullname เข้าใน INSERT statement
+    $stmt = $conn->prepare("INSERT INTO users (email, fullname, username, password, role, status) VALUES (?, ?, ?, ?, ?, ?)");
     
     try {
-        if ($stmt->execute([$email, $username, $password, $role, $status])) {
+        if ($stmt->execute([$email, $fullname, $username, $password, $role, $status])) {
             header("Location: login.php?success=1");
             exit();
         }
@@ -46,13 +48,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             min-height:100vh; margin:0;
         }
         .container {
-            background: rgba(255,255,255,0.9); /* โปร่งใสนิดหน่อย */
+            background: rgba(255,255,255,0.9);
             padding:20px;
             border-radius:8px;
             box-shadow:0 0 15px rgba(0,0,0,0.2);
             width:320px;
             text-align:center;
-            backdrop-filter: blur(8px); /* glass effect */
+            backdrop-filter: blur(8px);
         }
         h2 { margin-bottom: 15px; color:#333; }
         input, button {
@@ -60,11 +62,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             padding:10px;
             margin:8px 0;
             border-radius:4px;
-            box-sizing: border-box; /* ✅ ป้องกันล้น */
+            box-sizing: border-box;
         }
-        input {
-            border:1px solid #ccc;
-        }
+        input { border:1px solid #ccc; }
         button {
             background:#007bff;
             color:white;
