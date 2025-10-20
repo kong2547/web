@@ -158,6 +158,13 @@ $themeStyles = getThemeStyles($currentTheme);
         <a href="settings.php">ตั้งค่าระบบ</a>
       </div>
 
+      <div class="menu-card">
+        <i class="fas fa-tools"></i>
+        <a href="reset_password_admin.php" >
+          แก้ password
+        </a>
+      </div>
+
     </div>
 
     <div class="logout">
