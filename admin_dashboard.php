@@ -152,12 +152,18 @@ $themeStyles = getThemeStyles($currentTheme);
           รีเซ็ตลำดับ ID ฐานข้อมูล
         </a>
       </div>
+<div class="menu-card">
+        <i class="fas fa-wifi"></i>
+        <a href="latency_status.php">เช็คค่าความหน่วงสวิตช์</a>
+      </div>
 
+
+      <!--
       <div class="menu-card">
         <i class="fas fa-cog"></i>
         <a href="settings.php">ตั้งค่าระบบ</a>
       </div>
-
+  -->
       <div class="menu-card">
         <i class="fas fa-tools"></i>
         <a href="reset_password_admin.php" >

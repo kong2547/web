@@ -74,14 +74,15 @@ if (isset($_GET['search'])) {
     </style>
 </head>
 <body>
-    <!-- Navbar -->
+    
+    <!-- Navbar 
     <div class="navbar">
         <a href="index.php">🏠 หน้าแรก</a>
         <a href="building.php">🏢 อาคาร</a>
         <a href="plan.php">🏢 แผนผังตำแหน่งห้องภายในชั้น</a>
         <a href="logout.php" style="margin-left:auto; color:#ffc107;">🚪 ออกจากระบบ</a>
-    </div>
-
+    </div> 
+    -->
     <div class="container py-5">
         <h2 class="text-center mb-4 text-primary">รายชื่อผู้ใช้งาน</h2>
 

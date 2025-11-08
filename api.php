@@ -51,6 +51,8 @@ case 'update':
         // บันทึก log
         $log = $conn->prepare("INSERT INTO switch_logs (switch_id, room_id, status) VALUES (?, ?, ?)");
         $log->execute([$sw['id'], $sw['room_id'], $status == '1' ? 'on' : 'off']);
+
+        
     } else {
         // ถ้ายังไม่มี ให้เพิ่มใหม่ (เฉพาะกรณี ESP ส่งมา)
         $u = $conn->prepare("INSERT INTO switches 
@@ -61,7 +63,7 @@ case 'update':
     echo json_encode(["success" => true]);
 break;
 
-/* ✅ 2. GET STATUS */
+/* ✅ 2. GET STATUS (สำหรับ ESP) */
 case 'get_status':
     $esp_name = $_GET['esp_name'] ?? '';
     $gpio     = $_GET['gpio'] ?? '';
@@ -86,7 +88,66 @@ case 'get_status':
          ->execute([getClientIP(), $esp_name]);
 break;
 
-/* ✅ 3. CHECK SCHEDULE */
+/* ✅ 3. GET SWITCH STATUS (สำหรับวัด latency - ใหม่) */
+case 'get_switch_status':
+    $switch_id = (int)($_GET['switch_id'] ?? 0);
+    $room_id = (int)($_GET['room_id'] ?? 0);
+    
+    if (!$switch_id || !$room_id) {
+        echo json_encode(['success' => false, 'error' => 'Missing switch_id or room_id']);
+        exit;
+    }
+    
+    $stmt = $conn->prepare("SELECT status FROM switches WHERE id = ? AND room_id = ?");
+    $stmt->execute([$switch_id, $room_id]);
+    $switch = $stmt->fetch();
+    
+    if ($switch) {
+        echo json_encode([
+            'success' => true, 
+            'status' => $switch['status'],
+            'switch_id' => $switch_id,
+            'room_id' => $room_id
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Switch not found']);
+    }
+break;
+
+/* ✅ 4. LOG LATENCY (ใหม่) */
+case 'log_latency':
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!$input) {
+        echo json_encode(['success' => false, 'error' => 'Invalid JSON input']);
+        exit;
+    }
+    
+    $switch_id = (int)($input['switch_id'] ?? 0);
+    $room_id = (int)($input['room_id'] ?? 0);
+    $web_to_server_ms = (int)($input['web_to_server_ms'] ?? 0);
+    $full_latency_ms = (int)($input['full_latency_ms'] ?? 0);
+    $status = $input['status'] ?? 'unknown';
+    
+    if (!$switch_id || !$room_id) {
+        echo json_encode(['success' => false, 'error' => 'Missing required fields']);
+        exit;
+    }
+    
+    $stmt = $conn->prepare("INSERT INTO latency_logs (switch_id, room_id, web_to_server_ms, full_latency_ms, status, created_at) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([
+        $switch_id,
+        $room_id,
+        $web_to_server_ms,
+        $full_latency_ms,
+        $status,
+        $input['timestamp'] ?? date('Y-m-d H:i:s')
+    ]);
+    
+    echo json_encode(['success' => true, 'id' => $conn->lastInsertId()]);
+break;
+
+/* ✅ 5. CHECK SCHEDULE */
 case 'check_schedule':
     $esp_name = $_GET['esp_name'] ?? '';
     $gpio     = $_GET['gpio'] ?? '';
@@ -141,7 +202,7 @@ case 'check_schedule':
          ->execute([getClientIP(), $esp_name]);
 break;
 
-/* ✅ 4. HEARTBEAT */
+/* ✅ 6. HEARTBEAT */
 case 'heartbeat':
     $esp_name = $_GET['esp_name'] ?? '';
     $conn->prepare("UPDATE switches 
@@ -151,7 +212,7 @@ case 'heartbeat':
     echo json_encode(["ok" => true]);
 break;
 
-/* ✅ 5. ESP STATUS */
+/* ✅ 7. ESP STATUS */
 case 'esp_status':
     $room_id = (int)($_GET['room_id'] ?? 0);
     $stmt = $conn->prepare("
@@ -176,7 +237,7 @@ case 'esp_status':
     echo json_encode($rows);
 break;
 
-/* ✅ 6. LIST STATUS (ใช้ใน public_control.php) */
+/* ✅ 8. LIST STATUS (ใช้ใน public_control.php) */
 case 'list_statuses':
     $room_id = (int)($_GET['room_id'] ?? 0);
     $stmt = $conn->prepare("SELECT gpio_pin, status FROM switches WHERE room_id=?");
@@ -184,7 +245,7 @@ case 'list_statuses':
     echo json_encode($stmt->fetchAll());
 break;
 
-/* ✅ 7. GET SERVER TIME */
+/* ✅ 9. GET SERVER TIME */
 case 'get_time':
     echo json_encode([
         "time"  => date("H:i:s"),
@@ -195,7 +256,7 @@ case 'get_time':
     ]);
 break;
 
-/* ✅ 8. GET SCHEDULE (join GPIO) */
+/* ✅ 10. GET SCHEDULE (join GPIO) */
 case 'get_schedule':
     $esp_name = $_GET['esp_name'] ?? '';
     if (!$esp_name) {
@@ -216,7 +277,7 @@ case 'get_schedule':
     echo json_encode($stmt->fetchAll());
 break;
 
-/* ✅ 9. UPDATE IP (ESP ใช้รายงานตัวเอง) */
+/* ✅ 11. UPDATE IP (ESP ใช้รายงานตัวเอง) */
 case 'update_ip':
     $esp_name = $_GET['esp_name'] ?? '';
     $ip = $_GET['ip'] ?? '';
@@ -237,7 +298,8 @@ case 'update_ip':
 
     echo json_encode(["success" => true]);
 break;
-/* ✅ 10. LOG WIFI RECONNECT (ใช้เวลาเซิร์ฟเวอร์เป็นหลัก) */
+
+/* ✅ 12. LOG WIFI RECONNECT (ใช้เวลาเซิร์ฟเวอร์เป็นหลัก) */
 case 'log_reconnect':
     $esp_name = $_GET['esp_name'] ?? '';
     $ip       = $_GET['ip'] ?? getClientIP();
@@ -266,37 +328,55 @@ case 'log_reconnect':
     ]);
 break;
 
-/* ✅ 11. LOG BOOT (ESP บันทึกตอนเริ่มบูตใหม่) 
-case 'log_boot':
+/* ✅ 13. LATENCY TEST RESPONSE (ใหม่) */
+case 'latency_test_response':
     $esp_name = $_GET['esp_name'] ?? '';
-    $ip       = $_GET['ip'] ?? getClientIP();
-
-    if (!$esp_name) {
-        echo json_encode(["error" => "esp_name required"]);
+    $gpio = $_GET['gpio'] ?? '';
+    $action = $_GET['action'] ?? '';
+    $esp_time = $_GET['esp_time'] ?? '';
+    
+    if (!$esp_name || !$gpio) {
+        echo json_encode(["error" => "Missing parameters"]);
         exit;
     }
-
-    // ใช้เวลาเซิร์ฟเวอร์เป็นหลัก
-    $server_date = date("Y-m-d");
-    $server_time = date("H:i:s");
-
-    // ✅ บันทึกข้อมูลการบูตของบอร์ด
-    $stmt = $conn->prepare("
-        INSERT INTO esp_logs (esp_name, ip_address, log_date, log_time, created_at)
-        VALUES (?, ?, ?, ?, NOW())
-    ");
-    $stmt->execute([$esp_name, $ip, $server_date, $server_time]);
-
+    
     echo json_encode([
         "success" => true,
-        "msg" => "Boot log saved (server time)",
-        "server_date" => $server_date,
-        "server_time" => $server_time
+        "message" => "Latency test response received",
+        "esp_name" => $esp_name,
+        "gpio" => $gpio,
+        "action" => $action,
+        "esp_time" => $esp_time,
+        "server_time" => date("H:i:s"),
+        "received_at" => date("Y-m-d H:i:s")
     ]);
-break;*/
+break;
+
+// ✅ ตรวจสอบว่ามีคำสั่งใหม่หรือไม่
+if ($_GET['cmd'] === 'check_update') {
+    $esp = $_GET['esp_name'];
+    $stmt = $conn->prepare("SELECT updated FROM esp_status WHERE esp_name=?");
+    $stmt->execute([$esp]);
+    $row = $stmt->fetch();
+    if ($row && $row['updated'] == 1) {
+        echo "update=1";
+    } else {
+        echo "update=0";
+    }
+    exit;
+}
+
+// ✅ รีเซต flag หลัง ESP ดึงแล้ว
+if ($_GET['cmd'] === 'reset_update') {
+    $esp = $_GET['esp_name'];
+    $stmt = $conn->prepare("UPDATE esp_status SET updated=0 WHERE esp_name=?");
+    $stmt->execute([$esp]);
+    echo "reset=ok";
+    exit;
+}
 
 
 default:
-    echo json_encode(["error" => "Invalid cmd"]);
+    echo json_encode(["error" => "Invalid cmd: $cmd"]);
 }
 ?>
