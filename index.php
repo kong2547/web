@@ -205,6 +205,7 @@ if (isset($_GET['logout'])) {
 <div class="navbar">
     <h1>ระบบจัดการพลังงาน อาคารศรีวิศววิทยา คณะวิศวกรรมศาสตร์</h1>
     <div>
+        <a href="/webcontrol/howtoweb.pdf">How to Use </a>
         <a href="about.php">About</a>
         <a href="index.php?logout=1">Logout</a>
     </div>

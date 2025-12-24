@@ -375,7 +375,34 @@ if ($_GET['cmd'] === 'reset_update') {
     exit;
 }
 
+case 'log_latency':
+    $data = json_decode(file_get_contents('php://input'), true);
 
+    if (!$data) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid data']);
+        exit;
+    }
+
+    $stmt = $conn->prepare("
+        INSERT INTO latency_logs 
+        (switch_id, room_id, web_to_server_ms, full_latency_ms, status, action_type, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, NOW())
+    ");
+    $stmt->execute([
+        $data['switch_id'], 
+        $data['room_id'], 
+        $data['web_to_server_ms'], 
+        $data['full_latency_ms'], 
+        $data['status'], 
+        $data['action_type']
+    ]);
+
+    echo json_encode(['success' => true]);
+    break;
+
+
+    
 default:
     echo json_encode(["error" => "Invalid cmd: $cmd"]);
 }

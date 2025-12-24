@@ -36,61 +36,243 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
+    <meta charset="UTF-8">
     <title>สมัครสมาชิก</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
     <style>
+        /* CSS ทั้งหมดถูกคัดลอกมาจาก login.php */
+        :root{
+            --brand:#0e6fff;
+            --brand-2:#f59e0b;
+            --accent:#22c55e;
+            --text:#1f2937;
+            --card-bg:rgba(255,255,255,.85);
+            --card-border:rgba(255,255,255,.45);
+            --link:#1d4ed8;
+            --link-hover:#1e40af;
+        }
+
+        *{box-sizing:border-box}
+        html,body{height:100%}
         body {
-            font-family: Arial;
+            font-family: "Sarabun", Arial, sans-serif;
+            color: var(--text);
             background: url('engineer.png') no-repeat center center fixed;
             background-size: cover;
-            display:flex; justify-content:center; align-items:center;
-            min-height:100vh; margin:0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            position: relative;
+            padding: 24px;
+            overflow-x: hidden;
+            filter: brightness(1.05);
         }
-        .container {
-            background: rgba(255,255,255,0.9);
-            padding:20px;
-            border-radius:8px;
-            box-shadow:0 0 15px rgba(0,0,0,0.2);
-            width:320px;
-            text-align:center;
-            backdrop-filter: blur(8px);
+
+        /* เลเยอร์พื้นหลัง */
+        body::before{
+            content:"";
+            position:fixed; inset:0;
+            background:linear-gradient(to bottom, rgba(0,0,0,.05), rgba(0,0,0,.15));
+            z-index:0;
         }
-        h2 { margin-bottom: 15px; color:#333; }
-        input, button {
-            width:100%;
-            padding:10px;
-            margin:8px 0;
-            border-radius:4px;
-            box-sizing: border-box;
+        body::after{
+            content:"";
+            position:fixed; inset:0;
+            background:
+              radial-gradient(800px 400px at 80% 15%, rgba(255,255,255,.22), transparent 60%),
+              radial-gradient(600px 300px at 15% 85%, rgba(14,111,255,.12), transparent 55%);
+            z-index:0;
+            pointer-events:none;
         }
-        input { border:1px solid #ccc; }
+
+        h2, input, button, .system-title, .link-line, .public-btn {
+            font-family: "Sarabun", Arial, sans-serif !important;
+        }
+
+        .bg-logo {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: auto;
+            z-index: 2;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,.85))
+                    drop-shadow(0 6px 14px rgba(0,0,0,.25));
+            pointer-events: none;
+            animation: floatLogo 4s ease-in-out infinite alternate;
+        }
+        @keyframes floatLogo{
+            from{ transform: translateX(-50%) translateY(0) }
+            to  { transform: translateX(-50%) translateY(-8px) }
+        }
+
+        .system-title {
+            position: fixed;
+            top: 225px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 26px;
+            font-weight: 700;
+            color: #222;
+            background: rgba(255,255,255,.92);
+            padding: 10px 22px;
+            border-radius: 999px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 24px rgba(0,0,0,.18);
+            z-index: 2;
+            display:flex; align-items:center; gap:10px;
+            backdrop-filter: blur(6px) saturate(140%);
+        }
+        .system-title .dot{
+            width:10px; height:10px; border-radius:999px; background:var(--brand-2);
+            box-shadow:0 0 0 6px rgba(245,158,11,.18);
+        }
+
+        form {
+            background: var(--card-bg);
+            padding: 28px 24px 24px;
+            border-radius: 18px;
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px) saturate(180%);
+            box-shadow: 0 20px 45px rgba(0,0,0,.28);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            margin-top: 250px;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp .8s ease-out both;
+        }
+        @keyframes fadeInUp{
+            from{ opacity:0; transform: translateY(36px) }
+            to  { opacity:1; transform: translateY(0) }
+        }
+
+        h2{
+            margin:0 0 14px;
+            font-size:23px; font-weight:700;
+            letter-spacing:.3px;
+            color:#111827;
+            text-shadow: 0 1px 0 rgba(255,255,255,.6);
+        }
+        .divider{
+            height:1px; width:100%;
+            background:linear-gradient(90deg, transparent, rgba(0,0,0,.10), transparent);
+            margin:10px 0 18px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            margin: 10px 0;
+            border: 1.2px solid #d1d5db;
+            border-radius: 12px;
+            background: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s, transform .08s;
+            box-shadow: 0 2px 6px rgba(0,0,0,.05) inset;
+        }
+        input:hover{ box-shadow: 0 0 0 3px rgba(14,111,255,.06) }
+        input:focus{
+            border-color: var(--brand);
+            box-shadow: 0 0 0 4px rgba(14,111,255,.15);
+        }
+
         button {
-            background:#007bff;
-            color:white;
-            border:none;
-            cursor:pointer;
-            font-weight:bold;
+            /* เปลี่ยนสีปุ่มสำหรับ Register เป็นสีฟ้า (Brand Color) */
+            background: linear-gradient(270deg, #1d4ed8, #3b82f6, #2563eb);
+            background-size: 200% 200%;
+            color: white;
+            padding: 12px 14px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
+            font-size: 15px;
+            box-shadow: 0 10px 22px rgba(37,99,235,.35); /* ใช้สีฟ้าสำหรับเงา */
+            transition: transform .06s ease, filter .15s, box-shadow .15s;
+            animation: gradientMove 3s ease infinite;
         }
-        button:hover { background:#0056b3; }
-        .error {color:red; margin-top:10px;}
-        a {color:#007bff; text-decoration:none;}
-        a:hover {text-decoration: underline;}
+        @keyframes gradientMove{
+            0%{background-position:0% 50%}
+            50%{background-position:100% 50%}
+            100%{background-position:0% 50%}
+        }
+        button:hover { filter: brightness(1.03); box-shadow: 0 14px 26px rgba(37,99,235,.45); } /* ใช้สีฟ้าสำหรับเงา */
+        button:active { transform: translateY(1px); }
+
+        .error {
+            color: #dc2626;
+            background:#fee2e2;
+            border:1px solid #fecaca;
+            padding:10px 12px;
+            border-radius:10px;
+            margin-bottom:12px;
+            font-size:14px;
+            text-align: left;
+            box-shadow: 0 6px 12px rgba(220,38,38,.08);
+        }
+
+        .link-line { margin-top: 12px; }
+        .link-line a {
+            display:inline-block;
+            color: var(--link);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 13px;
+            background: rgba(255,255,255,.55);
+            padding:6px 12px;
+            border-radius:10px;
+            box-shadow:0 6px 14px rgba(0,0,0,.10);
+            transition: transform .15s, background .15s, color .15s;
+        }
+        .link-line a:hover { color:#fff; background: #2563eb; transform: translateY(-2px); }
+
+        /* ลบ .public-btn ออกเนื่องจากไม่ใช้ในหน้านี้ */
+
+        input:focus-visible, button:focus-visible, .link-line a:focus-visible{
+            outline: 3px solid #0e6fff55; outline-offset: 3px;
+        }
+
+        @media (max-width:480px){
+            .system-title{ top: 170px; font-size:18px }
+            form{ margin-top: 220px; padding: 24px }
+        }
     </style>
 </head>
 <body>
-<div class="container">
+    <img src="rmutsv-logo.png" alt="RMUTSV Logo" class="bg-logo">
+
+    <div class="system-title"><span class="dot"></span> ระบบบริหารจัดการแสงสว่างในอาคารด้วยฐานข้อมูล</div>
+
+<form method="post">
     <h2>สมัครสมาชิก</h2>
-    <form method="post">
-        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-        <input type="email" name="email" placeholder="อีเมล" required>
-        <input type="text" name="fullname" placeholder="ชื่อ-นามสกุล" required>
-        <input type="text" name="username" placeholder="ชื่อผู้ใช้" required>
-        <input type="password" name="password" placeholder="รหัสผ่าน" required>
-        <button type="submit">สมัครสมาชิก</button>
-    </form>
+    <div class="divider"></div>
+
     <?php if (isset($error)) echo "<p class='error'>$error</p>"; ?>
-    <p><a href="login.php">กลับไปหน้า Login</a></p>
-</div>
+
+    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+    <input type="email" name="email" placeholder="อีเมล" required autocomplete="email">
+    <input type="text" name="fullname" placeholder="ชื่อ-นามสกุล" required autocomplete="name">
+    <input type="text" name="username" placeholder="ชื่อผู้ใช้" required autocomplete="username">
+    <input type="password" name="password" placeholder="รหัสผ่าน" required autocomplete="new-password">
+    <button type="submit">สมัครสมาชิก</button>
+
+    <p class="link-line"><a href="login.php"><i class="fa-solid fa-arrow-left"></i> กลับไปหน้า Login</a></p>
+</form>
+
 </body>
 </html>

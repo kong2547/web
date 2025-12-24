@@ -605,6 +605,63 @@ input:checked + .slider:before {
     color: #721c24;
 }
 
+/* เอฟเฟกต์แสงสำหรับหลอดไฟเมื่อเปิด */
+.bulb-on {
+    color: #ffc107 !important;
+    filter: drop-shadow(0 0 10px rgba(255,193,7,0.7));
+    animation: bulbGlow 2s infinite alternate;
+}
+
+.bulb-off {
+    color: #6c757d !important;
+    opacity: 0.6;
+}
+
+@keyframes bulbGlow {
+    from {
+        filter: drop-shadow(0 0 5px rgba(255,193,7,0.5));
+    }
+    to {
+        filter: drop-shadow(0 0 15px rgba(255,193,7,0.8));
+    }
+}
+
+/* เพิ่มการเปลี่ยนแปลงเมื่อ hover */
+.fa-lightbulb {
+    transition: all 0.3s ease;
+}
+
+.switch-card:hover .fa-lightbulb.bulb-off {
+    opacity: 1;
+    color: #adb5bd !important;
+}
+
+/* สไตล์สำหรับการแสดงผลหลอดไฟ */
+.bulb-container {
+    position: relative;
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.bulb-status {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.bulb-status.on {
+    background-color: var(--success-color);
+    box-shadow: 0 0 5px var(--success-color);
+}
+
+.bulb-status.off {
+    background-color: var(--secondary-color);
+}
+
 @media (max-width: 768px) {
     .container-main {
         margin: 10px auto;
@@ -686,9 +743,25 @@ input:checked + .slider:before {
                         <?php foreach ($switches as $sw): ?>
                             <div class="switch-card">
                                 <div class="switch-info">
-                                    <div class="switch-name"><?= htmlspecialchars($sw['switch_name']) ?></div>
-                                    <div class="switch-details">
-                                        ESP: <?= htmlspecialchars($sw['esp_name']) ?> | GPIO: <?= htmlspecialchars($sw['gpio_pin']) ?>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bulb-container">
+                                            <?php if ($sw['status'] === 'on'): ?>
+                                                <i class="fas fa-lightbulb fa-2x bulb-on"></i>
+                                                <div class="bulb-status on"></div>
+                                            <?php else: ?>
+                                                <i class="fas fa-lightbulb fa-2x bulb-off"></i>
+                                                <div class="bulb-status off"></div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div>
+                                            <div class="switch-name"><?= htmlspecialchars($sw['switch_name']) ?></div>
+                                            <div class="switch-details">
+                                                ESP: <?= htmlspecialchars($sw['esp_name']) ?> | GPIO: <?= htmlspecialchars($sw['gpio_pin']) ?>
+                                                <span class="badge bg-<?= $sw['status'] === 'on' ? 'success' : 'secondary' ?> ms-2">
+                                                    <?= $sw['status'] === 'on' ? 'เปิด' : 'ปิด' ?>
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="switch-actions d-flex align-items-center">
@@ -900,8 +973,12 @@ input:checked + .slider:before {
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                    <i class="fas fa-plug text-primary"></i>
+                                                <div class="bulb-container me-2">
+                                                    <?php if ($sw['status'] === 'on'): ?>
+                                                        <i class="fas fa-lightbulb text-warning bulb-on"></i>
+                                                    <?php else: ?>
+                                                        <i class="fas fa-lightbulb text-muted bulb-off"></i>
+                                                    <?php endif; ?>
                                                 </div>
                                                 <?= htmlspecialchars($sw['switch_name']) ?>
                                             </div>
@@ -936,7 +1013,13 @@ input:checked + .slider:before {
                                     <div class="accordion-item border-0">
                                         <h2 class="accordion-header" id="heading<?= $index ?>">
                                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $index ?>">
-                                                <i class="fas fa-plug me-2 text-primary"></i>
+                                                <div class="bulb-container me-2">
+                                                    <?php if ($sw['status'] === 'on'): ?>
+                                                        <i class="fas fa-lightbulb text-warning bulb-on"></i>
+                                                    <?php else: ?>
+                                                        <i class="fas fa-lightbulb text-muted bulb-off"></i>
+                                                    <?php endif; ?>
+                                                </div>
                                                 <?= htmlspecialchars($sw['switch_name']) ?>
                                                 <span class="badge bg-primary ms-2"><?= count($operationPeriods[$sw['id']] ?? []) ?> รายการ</span>
                                             </button>
@@ -1006,7 +1089,27 @@ input:checked + .slider:before {
                                 <tbody>
                                     <?php foreach($schedules as $sch): ?>
                                         <tr>
-                                            <td><?= htmlspecialchars($switch_name_map[$sch['device_id']] ?? $sch['device_id']) ?></td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bulb-container me-2">
+                                                        <?php 
+                                                            $switch_status = 'off';
+                                                            foreach($switches as $sw) {
+                                                                if ('switch_' . $sw['id'] === $sch['device_id']) {
+                                                                    $switch_status = $sw['status'];
+                                                                    break;
+                                                                }
+                                                            }
+                                                        ?>
+                                                        <?php if ($switch_status === 'on'): ?>
+                                                            <i class="fas fa-lightbulb text-warning bulb-on"></i>
+                                                        <?php else: ?>
+                                                            <i class="fas fa-lightbulb text-muted bulb-off"></i>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <?= htmlspecialchars($switch_name_map[$sch['device_id']] ?? $sch['device_id']) ?>
+                                                </div>
+                                            </td>
                                             <td><?= htmlspecialchars($sch['esp_name']) ?></td>
                                             <td><?= htmlspecialchars($sch['weekdays'] ?: 'ทุกวัน') ?></td>
                                             <td><?= $sch['start_time'] ?> - <?= $sch['end_time'] ?></td>
@@ -1292,6 +1395,40 @@ function refreshESPStatus() {
         });
 }
 
+// ฟังก์ชันอัพเดทไอคอนหลอดไฟ
+function updateBulbIcon(switchId, status) {
+    const switchCard = document.querySelector(`.switch-card input[onchange*="toggleSwitch(${switchId}"]`).closest('.switch-card');
+    const bulbIcon = switchCard.querySelector('.fa-lightbulb');
+    const bulbStatus = switchCard.querySelector('.bulb-status');
+    const statusBadge = switchCard.querySelector('.badge');
+    
+    if (status === 'on') {
+        bulbIcon.classList.remove('bulb-off', 'text-muted');
+        bulbIcon.classList.add('bulb-on', 'text-warning');
+        if (bulbStatus) {
+            bulbStatus.classList.remove('off');
+            bulbStatus.classList.add('on');
+        }
+        if (statusBadge) {
+            statusBadge.classList.remove('bg-secondary');
+            statusBadge.classList.add('bg-success');
+            statusBadge.textContent = 'เปิด';
+        }
+    } else {
+        bulbIcon.classList.remove('bulb-on', 'text-warning');
+        bulbIcon.classList.add('bulb-off', 'text-muted');
+        if (bulbStatus) {
+            bulbStatus.classList.remove('on');
+            bulbStatus.classList.add('off');
+        }
+        if (statusBadge) {
+            statusBadge.classList.remove('bg-success');
+            statusBadge.classList.add('bg-secondary');
+            statusBadge.textContent = 'ปิด';
+        }
+    }
+}
+
 // ฟังก์ชัน toggle สวิตช์แบบ AJAX พร้อมวัด latency
 function toggleSwitch(switchId, roomId, checkbox) {
     // เริ่มจับเวลา
@@ -1300,6 +1437,9 @@ function toggleSwitch(switchId, roomId, checkbox) {
     // ตรวจสอบสถานะปัจจุบันและสถานะใหม่
     const currentStatus = checkbox.checked;
     const newStatus = !currentStatus;
+    
+    // อัพเดทไอคอนหลอดไฟทันที (สำหรับการตอบสนองที่รวดเร็ว)
+    updateBulbIcon(switchId, newStatus ? 'on' : 'off');
     
     // ป้องกันการคลิกซ้ำขณะโหลด
     checkbox.disabled = true;
@@ -1316,6 +1456,9 @@ function toggleSwitch(switchId, roomId, checkbox) {
             // อัพเดทสถานะ checkbox ตาม response
             checkbox.checked = data.new_status === 'on';
             
+            // อัพเดทไอคอนหลอดไฟอีกครั้งเพื่อความแน่นอน
+            updateBulbIcon(switchId, data.new_status);
+            
             // คำนวณ latency (เว็บ → เซิร์ฟเวอร์)
             const webToServerLatency = performance.now() - latencyStartTime;
             
@@ -1330,12 +1473,16 @@ function toggleSwitch(switchId, roomId, checkbox) {
             
         } else {
             showTempMessage('เกิดข้อผิดพลาดในการอัพเดทสถานะ', 'error');
+            // รีเซตไอคอนกลับสู่สถานะเดิม
+            updateBulbIcon(switchId, currentStatus ? 'on' : 'off');
             checkbox.checked = !checkbox.checked;
         }
     })
     .catch(error => {
         console.error('Error:', error);
         showTempMessage('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
+        // รีเซตไอคอนกลับสู่สถานะเดิม
+        updateBulbIcon(switchId, currentStatus ? 'on' : 'off');
         checkbox.checked = !checkbox.checked;
     })
     .finally(() => {
